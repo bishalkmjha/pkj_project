@@ -1,0 +1,9 @@
+[project]
+name = "linkpulse"
+version = "0.1.0"
+description = "Link-shortener SaaS with subscription plans, trials and usage limits"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning:fastapi.testclient", "ignore:Using `httpx`"]
