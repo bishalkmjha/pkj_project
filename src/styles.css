@@ -114,7 +114,7 @@ a { color: var(--accent); }
 .btn.block { width: 100%; }
 .btn:disabled { opacity: .5; cursor: default; }
 .icon-btn { border: 0; background: var(--surface-2); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: grid; place-items: center; font-size: 18px; }
-.link-btn { border: 0; background: none; color: var(--accent); cursor: pointer; padding: 4px 0; font-weight: 600; }
+.link-btn { border: 0; background: none; color: var(--accent); cursor: pointer; padding: 4px 0; font-weight: 600; text-align: left; }
 
 /* chips */
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -236,3 +236,12 @@ label.field { display: flex; flex-direction: column; gap: 6px; font-size: 14px; 
   .page { position: static; padding: 0; }
   .card { border: 0; padding: 0; }
 }
+
+/* remedies & phase guides */
+.evidence { align-self: flex-start; font-size: 11px; font-weight: 700; letter-spacing: .03em; padding: 2px 8px; border-radius: 999px; text-transform: uppercase; }
+.evidence.good { background: var(--fertile-soft); color: var(--ovulation); }
+.evidence.some { background: var(--accent-soft); color: var(--accent); }
+.evidence.traditional { background: var(--surface-2); color: var(--muted); }
+.card.tip { gap: 6px; }
+.tips-list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+.tile-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; cursor: pointer; color: inherit; font: inherit; }

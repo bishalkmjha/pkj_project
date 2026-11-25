@@ -229,6 +229,38 @@ export const en = {
   lockConfirmTitle: "Enter the PIN again",
   lockMismatch: "PINs didn't match. Try again.",
 
+  // discharge
+  logDischarge: "Discharge",
+  logDischargeHint: "Changes through your cycle. Egg-white discharge means ovulation is near.",
+  dis_dry: "Dry / none",
+  dis_sticky: "Sticky",
+  dis_creamy: "Creamy",
+  dis_watery: "Watery",
+  dis_eggWhite: "Egg-white (stretchy)",
+  dis_unusual: "Unusual (colour, smell, itch)",
+
+  // relief, phases & remedies
+  todayRelief: "Relief for today",
+  todayReliefHint: "Natural tips for what you logged today.",
+  todayPhaseTips: "Food, movement & self-care for this phase",
+  todayUnusualDischarge: "Unusual discharge can be a sign of an infection that's easy to treat. If it lasts or comes with itching, burning or a bad smell, see a doctor.",
+  seeAllTips: "See all tips",
+  learnPhases: "Your cycle, phase by phase",
+  learnRemedies: "Natural remedies",
+  learnRemediesHint: "Simple, safe tips for common symptoms, with how strong the evidence is.",
+  phaseHormones: "Hormones",
+  phaseBody: "Your body",
+  phaseFood: "Food",
+  phaseMove: "Movement",
+  phaseCare: "Self-care",
+  phaseNow: "You are here",
+  remTips: "What can help",
+  remCaution: "Be careful",
+  remDoctor: "When to see a doctor",
+  setRemBreast: "Monthly breast self-check",
+  notifBreastTitle: "Time for your breast self-check",
+  notifBreastBody: "A quick monthly check helps you notice changes early. Open Sakhi → Learn for how.",
+
   // notifications
   notifSoonTitle: "Period coming soon",
   notifSoonBody: "Your period is expected in about 2 days.",

@@ -1,11 +1,16 @@
 import { FlagBanner } from "../components/ui";
+import type { GuidePhase } from "../i18n/phases";
+import { MOOD_REMEDY, SYMPTOM_REMEDY, remedyById, type RemedyId } from "../i18n/remedies";
+import { EvidenceTag } from "./Guides";
 import { formatDate, type StringKey } from "../i18n";
 import { status } from "../lib/cycle";
 import { addDays } from "../lib/dates";
 import { healthFlags, urgentNow } from "../lib/health";
 import { useStore } from "../store";
 
-export function Today({ onLog, onInsights }: { onLog: () => void; onInsights: () => void }) {
+export function Today({ onLog, onInsights, onPhase, onRemedy }: {
+  onLog: () => void; onInsights: () => void; onPhase: (p: GuidePhase) => void; onRemedy: (r: RemedyId) => void;
+}) {
   const { data, t, today, stats, predictions, startPeriod, endPeriod, setDay } = useStore();
   const lang = data.settings.lang;
   const st = status(data, today, stats);
@@ -13,6 +18,13 @@ export function Today({ onLog, onInsights }: { onLog: () => void; onInsights: ()
   const flags = healthFlags(data, stats, predictions[0], today);
   const fmt = (d: string) => formatDate(d, lang);
   const todayLog = data.days[today] ?? {};
+  // Remedies for what was logged today; during a period with nothing logged, cramps tips by default.
+  const reliefIds = [...new Set([
+    ...(todayLog.symptoms ?? []).map((s) => SYMPTOM_REMEDY[s]),
+    ...(todayLog.moods ?? []).map((m) => MOOD_REMEDY[m]),
+  ].filter((x): x is RemedyId => !!x))];
+  if (!reliefIds.length && st.inPeriod) reliefIds.push("cramps");
+  const guidePhase: GuidePhase | null = ["period", "follicular", "fertile", "luteal"].includes(st.phase) ? (st.phase as GuidePhase) : null;
 
   let headline: string;
   if (st.phase === "unknown") headline = t("todayNoData");
@@ -79,7 +91,34 @@ export function Today({ onLog, onInsights }: { onLog: () => void; onInsights: ()
       <section className="card">
         <h3>{t(`phase_${st.phase}` as StringKey)}</h3>
         <p className="small">{t(`phaseInfo_${st.phase}` as StringKey)}</p>
+        {guidePhase && (
+          <button className="link-btn" style={{ alignSelf: "flex-start" }} onClick={() => onPhase(guidePhase)}>{t("todayPhaseTips")} →</button>
+        )}
       </section>
+
+      {todayLog.discharge === "unusual" && <div className="banner doctor"><p className="small">{t("todayUnusualDischarge")}</p></div>}
+
+      {reliefIds.length > 0 && (
+        <section className="stack">
+          <h2>{t("todayRelief")}</h2>
+          <p className="muted small">{t("todayReliefHint")}</p>
+          {reliefIds.slice(0, 3).map((id) => {
+            const r = remedyById(id);
+            return (
+              <div key={id} className="card">
+                <h3><span aria-hidden>{r.icon}</span> {r.title[lang]}</h3>
+                {r.tips.slice(0, 2).map((tip, i) => (
+                  <div key={i} className="stack" style={{ gap: 4 }}>
+                    <EvidenceTag evidence={tip.evidence} />
+                    <p className="small">{tip.text[lang]}</p>
+                  </div>
+                ))}
+                <button className="link-btn" style={{ alignSelf: "flex-start" }} onClick={() => onRemedy(id)}>{t("seeAllTips")} →</button>
+              </div>
+            );
+          })}
+        </section>
+      )}
 
       {flags.length > 0 && (
         <section className="stack">

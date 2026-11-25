@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { formatDate, type StringKey } from "../i18n";
 import type { ISODate } from "../lib/dates";
-import { MOODS, SYMPTOMS, type DayLog, type Flow, type Mood, type Pain, type Symptom } from "../lib/types";
+import { DISCHARGES, MOODS, SYMPTOMS, type DayLog, type Flow, type Mood, type Pain, type Symptom } from "../lib/types";
 import { useStore } from "../store";
 import { Chip, Sheet } from "./ui";
 
@@ -41,6 +41,18 @@ export function DayLogSheet({ date, onClose }: { date: ISODate; onClose: () => v
           {([0, 1, 2, 3] as Pain[]).map((p) => (
             <Chip key={p} on={(log.pain ?? 0) === p} onClick={() => setLog({ ...log, pain: p || undefined })}>
               {t(`pain_${p}` as StringKey)}
+            </Chip>
+          ))}
+        </div>
+      </section>
+
+      <section className="stack">
+        <h3>{t("logDischarge")}</h3>
+        <p className="muted tiny">{t("logDischargeHint")}</p>
+        <div className="chips">
+          {DISCHARGES.map((d) => (
+            <Chip key={d} on={log.discharge === d} onClick={() => setLog({ ...log, discharge: log.discharge === d ? undefined : d })}>
+              {t(`dis_${d}` as StringKey)}
             </Chip>
           ))}
         </div>

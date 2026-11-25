@@ -18,7 +18,7 @@ export function Settings({ onPin, onPrivacy, toast }: { onPin: () => void; onPri
 
   const setReminders = async (patch: Partial<Reminders>) => {
     const next = { ...s.reminders, ...patch };
-    const turningOn = (patch.periodSoon || patch.periodLate || patch.pill?.enabled) === true;
+    const turningOn = (patch.periodSoon || patch.periodLate || patch.breastCheck || patch.pill?.enabled) === true;
     if (turningOn && notificationsSupported()) {
       const ok = await ensurePermission();
       setDenied(!ok);
@@ -80,6 +80,7 @@ export function Settings({ onPin, onPrivacy, toast }: { onPin: () => void; onPri
         {denied && <p className="small" style={{ color: "var(--danger)" }}>{t("setRemDenied")}</p>}
         <Switch label={t("setRemPeriodSoon")} checked={s.reminders.periodSoon} onChange={(v) => setReminders({ periodSoon: v })} />
         <Switch label={t("setRemLate")} checked={s.reminders.periodLate} onChange={(v) => setReminders({ periodLate: v })} />
+        <Switch label={t("setRemBreast")} checked={s.reminders.breastCheck} onChange={(v) => setReminders({ breastCheck: v })} />
         <Switch label={t("setRemPill")} checked={s.reminders.pill.enabled} onChange={(v) => setReminders({ pill: { ...s.reminders.pill, enabled: v } })} />
         {s.reminders.pill.enabled && (
           <label className="setting">

@@ -3,13 +3,23 @@
  * MUST be reviewed by a qualified gynaecologist before public release.
  */
 import type { Lang } from "../lib/types";
+import { MORE_ARTICLES } from "./articles-more";
 
 interface Text { title: string; summary: string; body: string[] }
-export interface Article { id: string; icon: string; text: Record<Lang, Text> }
+export type ArticleCategory = "body" | "conditions" | "sexual" | "wellbeing";
+export interface Article { id: string; icon: string; category: ArticleCategory; text: Record<Lang, Text> }
 
-export const ARTICLES: Article[] = [
+export const CATEGORY_LABEL: Record<ArticleCategory, Record<Lang, string>> = {
+  body: { en: "Know your body", hi: "अपने शरीर को जानें" },
+  conditions: { en: "Health conditions", hi: "सेहत से जुड़ी समस्याएँ" },
+  sexual: { en: "Sexual & reproductive health", hi: "यौन और प्रजनन स्वास्थ्य" },
+  wellbeing: { en: "Wellbeing & nutrition", hi: "सेहत और पोषण" },
+};
+
+const BASE_ARTICLES: Article[] = [
   {
     id: "cycle-basics",
+    category: "body",
     icon: "🌸",
     text: {
       en: {
@@ -42,6 +52,7 @@ export const ARTICLES: Article[] = [
   },
   {
     id: "see-doctor",
+    category: "conditions",
     icon: "🩺",
     text: {
       en: {
@@ -78,6 +89,7 @@ export const ARTICLES: Article[] = [
   },
   {
     id: "heavy-anemia",
+    category: "conditions",
     icon: "🩸",
     text: {
       en: {
@@ -104,6 +116,7 @@ export const ARTICLES: Article[] = [
   },
   {
     id: "pcos",
+    category: "conditions",
     icon: "🔬",
     text: {
       en: {
@@ -132,6 +145,7 @@ export const ARTICLES: Article[] = [
   },
   {
     id: "pain",
+    category: "conditions",
     icon: "💢",
     text: {
       en: {
@@ -158,6 +172,7 @@ export const ARTICLES: Article[] = [
   },
   {
     id: "pms",
+    category: "wellbeing",
     icon: "🌙",
     text: {
       en: {
@@ -168,7 +183,7 @@ export const ARTICLES: Article[] = [
           "Regular exercise, enough sleep, and less salt, sugar and caffeine before your period can help.",
           "PMDD (premenstrual dysphoric disorder) is a more severe form, with intense sadness, anxiety, anger or hopelessness that affects relationships, studies or work. It is a real medical condition and can be treated.",
           "Logging your mood every day for two or more cycles helps a doctor tell PMS or PMDD apart from other conditions.",
-          "If you ever have thoughts of harming yourself, please reach out right away to someone you trust or a local emergency or mental-health helpline.",
+          "If you ever have thoughts of harming yourself, please reach out right away to someone you trust, or call Tele-MANAS on 14416 (free, 24×7, India).",
         ],
       },
       hi: {
@@ -179,13 +194,14 @@ export const ARTICLES: Article[] = [
           "नियमित व्यायाम, पूरी नींद, और पीरियड से पहले कम नमक, चीनी और कैफ़ीन लेने से मदद मिल सकती है।",
           "PMDD (प्रीमेंस्ट्रुअल डिस्फ़ोरिक डिसऑर्डर) इसका ज़्यादा गंभीर रूप है, जिसमें बहुत ज़्यादा उदासी, बेचैनी, गुस्सा या निराशा होती है, जो रिश्तों, पढ़ाई या काम पर असर डालती है। यह एक असली मेडिकल समस्या है और इसका इलाज हो सकता है।",
           "दो या उससे ज़्यादा चक्रों तक रोज़ अपना मूड दर्ज करने से डॉक्टर PMS या PMDD को दूसरी समस्याओं से अलग पहचान पाते हैं।",
-          "अगर आपके मन में कभी खुद को नुकसान पहुँचाने के ख़याल आएँ, तो तुरंत किसी भरोसेमंद व्यक्ति से या किसी इमरजेंसी या मानसिक स्वास्थ्य हेल्पलाइन से संपर्क करें।",
+          "अगर आपके मन में कभी खुद को नुकसान पहुँचाने के ख़याल आएँ, तो तुरंत किसी भरोसेमंद व्यक्ति से बात करें, या टेली-मानस 14416 (मुफ़्त, 24 घंटे, भारत) पर कॉल करें।",
         ],
       },
     },
   },
   {
     id: "hygiene",
+    category: "body",
     icon: "🧼",
     text: {
       en: {
@@ -213,3 +229,5 @@ export const ARTICLES: Article[] = [
     },
   },
 ];
+
+export const ARTICLES: Article[] = [...BASE_ARTICLES, ...MORE_ARTICLES];

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Chip, Logo, Stepper } from "../components/ui";
 import { addDays } from "../lib/dates";
+import { ensurePermission } from "../lib/notifications";
 import type { Lang } from "../lib/types";
 import { useStore } from "../store";
 
@@ -15,6 +16,7 @@ export function Onboarding() {
   const finish = () => {
     updateSettings({ onboarded: true, acceptedDisclaimer: true });
     if (last && !unknown) startPeriod(last);
+    void ensurePermission().catch(() => undefined);
   };
 
   const steps = [

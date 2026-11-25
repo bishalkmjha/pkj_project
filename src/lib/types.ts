@@ -12,12 +12,17 @@ export type Symptom = (typeof SYMPTOMS)[number];
 export const MOODS = ["happy", "calm", "sad", "anxious", "irritable", "moodSwings", "low"] as const;
 export type Mood = (typeof MOODS)[number];
 
+/** Cervical mucus / discharge, as people commonly describe it. "unusual" = colour, smell or itching. */
+export const DISCHARGES = ["dry", "sticky", "creamy", "watery", "eggWhite", "unusual"] as const;
+export type Discharge = (typeof DISCHARGES)[number];
+
 /** 0 none, 1 mild, 2 moderate, 3 severe */
 export type Pain = 0 | 1 | 2 | 3;
 
 export interface DayLog {
   flow?: Flow;
   pain?: Pain;
+  discharge?: Discharge;
   symptoms?: Symptom[];
   moods?: Mood[];
   pillTaken?: boolean;
@@ -28,6 +33,7 @@ export interface Reminders {
   periodSoon: boolean;
   periodLate: boolean;
   pill: { enabled: boolean; time: string }; // "HH:MM"
+  breastCheck: boolean;
 }
 
 export interface Settings {
@@ -54,7 +60,7 @@ export const DEFAULT_SETTINGS: Settings = {
   acceptedDisclaimer: false,
   typicalCycleLength: 28,
   typicalPeriodLength: 5,
-  reminders: { periodSoon: true, periodLate: true, pill: { enabled: false, time: "21:00" } },
+  reminders: { periodSoon: true, periodLate: true, pill: { enabled: false, time: "21:00" }, breastCheck: true },
   pinHash: null,
 };
 
@@ -67,5 +73,5 @@ export function isBleeding(log: DayLog | undefined): boolean {
 }
 
 export function isEmptyLog(log: DayLog): boolean {
-  return !log.flow && !log.pain && !log.symptoms?.length && !log.moods?.length && !log.pillTaken && !log.note?.trim();
+  return !log.flow && !log.pain && !log.discharge && !log.symptoms?.length && !log.moods?.length && !log.pillTaken && !log.note?.trim();
 }

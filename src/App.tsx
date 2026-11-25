@@ -5,6 +5,10 @@ import { PinPad } from "./components/PinPad";
 import { icons } from "./components/ui";
 import type { StringKey } from "./i18n";
 import type { Article } from "./i18n/articles";
+import type { GuidePhase } from "./i18n/phases";
+import type { RemedyId } from "./i18n/remedies";
+import { status } from "./lib/cycle";
+import { PhaseView, RemedyView } from "./screens/Guides";
 import type { ISODate } from "./lib/dates";
 import { checkPin, hashPin } from "./lib/pin";
 import { Calendar } from "./screens/Calendar";
@@ -23,6 +27,8 @@ type Overlay =
   | { kind: "report" }
   | { kind: "article"; article: Article }
   | { kind: "privacy" }
+  | { kind: "phase"; phase: GuidePhase }
+  | { kind: "remedy"; id: RemedyId }
   | { kind: "pinSetup" }
   | null;
 
@@ -83,10 +89,16 @@ export function App() {
 
   return (
     <div className="app">
-      {tab === "today" && <Today onLog={() => setOverlay({ kind: "log", date: today })} onInsights={() => setTab("insights")} />}
+      {tab === "today" && (
+        <Today onLog={() => setOverlay({ kind: "log", date: today })} onInsights={() => setTab("insights")}
+          onPhase={(phase) => setOverlay({ kind: "phase", phase })} onRemedy={(id) => setOverlay({ kind: "remedy", id })} />
+      )}
       {tab === "calendar" && <Calendar onPick={(date) => setOverlay({ kind: "log", date })} />}
       {tab === "insights" && <Insights onReport={() => setOverlay({ kind: "report" })} />}
-      {tab === "learn" && <Learn onOpen={(article) => setOverlay({ kind: "article", article })} />}
+      {tab === "learn" && (
+        <Learn onOpen={(article) => setOverlay({ kind: "article", article })}
+          onPhase={(phase) => setOverlay({ kind: "phase", phase })} onRemedy={(id) => setOverlay({ kind: "remedy", id })} />
+      )}
       {tab === "settings" && (
         <Settings onPin={() => setOverlay({ kind: "pinSetup" })} onPrivacy={() => setOverlay({ kind: "privacy" })} toast={toast} />
       )}
@@ -106,6 +118,10 @@ export function App() {
       {overlay?.kind === "report" && <Report onBack={close} toast={toast} />}
       {overlay?.kind === "article" && <ArticleView article={overlay.article} onBack={close} />}
       {overlay?.kind === "privacy" && <Privacy onBack={close} />}
+      {overlay?.kind === "phase" && (
+        <PhaseView phase={overlay.phase} current={status(data, today, store.stats).phase === overlay.phase} onBack={close} />
+      )}
+      {overlay?.kind === "remedy" && <RemedyView key={overlay.id} id={overlay.id} onBack={close} />}
       {overlay?.kind === "pinSetup" && (
         <div className="page"><PinSetup onDone={(msg) => { close(); if (msg) toast(msg); }} /></div>
       )}

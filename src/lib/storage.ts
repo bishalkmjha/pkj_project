@@ -4,7 +4,7 @@
  */
 import { Preferences } from "@capacitor/preferences";
 import { isValidISO } from "./dates";
-import { DEFAULT_SETTINGS, MOODS, SYMPTOMS, emptyData, type AppData, type DayLog } from "./types";
+import { DEFAULT_SETTINGS, DISCHARGES, MOODS, SYMPTOMS, emptyData, isEmptyLog, type AppData, type DayLog } from "./types";
 
 const KEY = "sakhi.data.v1";
 
@@ -34,6 +34,7 @@ function cleanLog(raw: unknown): DayLog | null {
   const log: DayLog = {};
   if (typeof r.flow === "string" && FLOWS.includes(r.flow)) log.flow = r.flow as DayLog["flow"];
   if (typeof r.pain === "number" && [0, 1, 2, 3].includes(r.pain)) log.pain = r.pain as DayLog["pain"];
+  if (typeof r.discharge === "string" && (DISCHARGES as readonly string[]).includes(r.discharge)) log.discharge = r.discharge as DayLog["discharge"];
   if (Array.isArray(r.symptoms)) log.symptoms = r.symptoms.filter((s) => (SYMPTOMS as readonly unknown[]).includes(s));
   if (Array.isArray(r.moods)) log.moods = r.moods.filter((s) => (MOODS as readonly unknown[]).includes(s));
   if (r.pillTaken === true) log.pillTaken = true;
@@ -56,7 +57,7 @@ export function parseBackup(json: string): AppData | null {
   const days: AppData["days"] = {};
   for (const [date, log] of Object.entries(r.days as Record<string, unknown>)) {
     const clean = isValidISO(date) ? cleanLog(log) : null;
-    if (clean) days[date] = clean;
+    if (clean && !isEmptyLog(clean)) days[date] = clean;
   }
   const s = (r.settings ?? {}) as Partial<AppData["settings"]>;
   const clamp = (v: unknown, lo: number, hi: number, d: number) =>
@@ -74,6 +75,7 @@ export function parseBackup(json: string): AppData | null {
       reminders: {
         periodSoon: rem.periodSoon !== false,
         periodLate: rem.periodLate !== false,
+        breastCheck: rem.breastCheck !== false,
         pill: {
           enabled: rem.pill?.enabled === true,
           time: /^\d{2}:\d{2}$/.test(rem.pill?.time ?? "") ? rem.pill.time : "21:00",
