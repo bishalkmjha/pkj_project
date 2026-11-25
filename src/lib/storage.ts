@@ -4,7 +4,7 @@
  */
 import { Preferences } from "@capacitor/preferences";
 import { isValidISO } from "./dates";
-import { DEFAULT_SETTINGS, DISCHARGES, MOODS, SYMPTOMS, emptyData, isEmptyLog, type AppData, type DayLog } from "./types";
+import { DEFAULT_SETTINGS, DISCHARGES, TEMP_MAX_C, TEMP_MIN_C, MOODS, SYMPTOMS, emptyData, isEmptyLog, type AppData, type DayLog } from "./types";
 
 const KEY = "sakhi.data.v1";
 
@@ -35,6 +35,8 @@ function cleanLog(raw: unknown): DayLog | null {
   if (typeof r.flow === "string" && FLOWS.includes(r.flow)) log.flow = r.flow as DayLog["flow"];
   if (typeof r.pain === "number" && [0, 1, 2, 3].includes(r.pain)) log.pain = r.pain as DayLog["pain"];
   if (typeof r.discharge === "string" && (DISCHARGES as readonly string[]).includes(r.discharge)) log.discharge = r.discharge as DayLog["discharge"];
+  if (typeof r.temp === "number" && r.temp >= TEMP_MIN_C && r.temp <= TEMP_MAX_C) log.temp = Math.round(r.temp * 100) / 100;
+  if (r.intimacy === "protected" || r.intimacy === "unprotected") log.intimacy = r.intimacy;
   if (Array.isArray(r.symptoms)) log.symptoms = r.symptoms.filter((s) => (SYMPTOMS as readonly unknown[]).includes(s));
   if (Array.isArray(r.moods)) log.moods = r.moods.filter((s) => (MOODS as readonly unknown[]).includes(s));
   if (r.pillTaken === true) log.pillTaken = true;
@@ -63,7 +65,7 @@ export function parseBackup(json: string): AppData | null {
   const clamp = (v: unknown, lo: number, hi: number, d: number) =>
     typeof v === "number" && v >= lo && v <= hi ? Math.round(v) : d;
   const rem = s.reminders ?? DEFAULT_SETTINGS.reminders;
-  return {
+  const result: AppData = {
     version: 1,
     days,
     settings: {
@@ -81,7 +83,14 @@ export function parseBackup(json: string): AppData | null {
           time: /^\d{2}:\d{2}$/.test(rem.pill?.time ?? "") ? rem.pill.time : "21:00",
         },
       },
+      goal: s.goal === "conceive" || s.goal === "pregnant" ? s.goal : "track",
+      pregnancy: s.goal === "pregnant" && s.pregnancy && isValidISO(String(s.pregnancy.lmp)) ? { lmp: s.pregnancy.lmp } : null,
+      pregnancyEnded: typeof s.pregnancyEnded === "string" && isValidISO(s.pregnancyEnded) ? s.pregnancyEnded : null,
+      tempUnit: s.tempUnit === "F" ? "F" : "C",
+      showIntimacy: s.showIntimacy !== false,
       pinHash: typeof s.pinHash === "string" ? s.pinHash : null,
     },
   };
+  if (result.settings.goal === "pregnant" && !result.settings.pregnancy) result.settings.goal = "track";
+  return result;
 }

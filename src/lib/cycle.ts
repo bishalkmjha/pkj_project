@@ -140,19 +140,59 @@ function uncertainty(stats: CycleStats): number {
   return Math.min(7, Math.max(1, Math.round(stdDev(usable))));
 }
 
+/**
+ * Ovulation confirmed by basal body temperature, using the common "3 over 6" rule: three
+ * consecutive readings above the highest of the previous six (the cover line), with the third at
+ * least 0.2 °C above it. Ovulation is taken as the day before the first high reading.
+ * Only days between `from` and `to` (inclusive) are considered. Needs at least 9 readings.
+ */
+export interface TempShift { ovulation: ISODate; coverline: number; firstHigh: ISODate }
+
+export function detectOvulation(days: Record<ISODate, DayLog>, from: ISODate, to: ISODate): TempShift | null {
+  const readings = Object.keys(days)
+    .filter((d) => d >= from && d <= to && typeof days[d].temp === "number")
+    .sort()
+    .map((d) => ({ d, t: days[d].temp! }));
+  for (let i = 6; i + 2 < readings.length; i++) {
+    const coverline = Math.max(...readings.slice(i - 6, i).map((r) => r.t));
+    const [a, b, c] = readings.slice(i, i + 3);
+    // readings must be on consecutive days for the rule to apply
+    if (diffDays(a.d, c.d) !== 2) continue;
+    if (a.t > coverline && b.t > coverline && c.t >= coverline + 0.2) {
+      return { ovulation: addDays(a.d, -1), coverline, firstHigh: a.d };
+    }
+  }
+  return null;
+}
+
+/** Temperature-confirmed ovulation in the current (latest) cycle, if any. */
+export function currentCycleShift(data: AppData, stats: CycleStats): TempShift | null {
+  const last = stats.periods[stats.periods.length - 1];
+  if (!last) return null;
+  return detectOvulation(data.days, last.start, addDays(last.start, 60));
+}
+
 /** Predict the next `count` periods after the last logged period start. */
 export function predict(data: AppData, count = 3, stats = computeStats(data)): Prediction[] {
   const last = stats.periods[stats.periods.length - 1];
   if (!last) return [];
-  const spread = uncertainty(stats);
+  let spread = uncertainty(stats);
+  // A confirmed temperature shift pins the next period to about 14 days after ovulation.
+  const shift = currentCycleShift(data, stats);
+  let first = addDays(last.start, stats.avgCycle);
+  if (shift) {
+    first = addDays(shift.ovulation, LUTEAL_DAYS);
+    spread = Math.min(spread, 2);
+  }
   const out: Prediction[] = [];
   for (let i = 1; i <= count; i++) {
-    const start = addDays(last.start, stats.avgCycle * i);
-    const ovulation = addDays(start, -LUTEAL_DAYS);
+    const start = addDays(first, stats.avgCycle * (i - 1));
+    const ovulation = i === 1 && shift ? shift.ovulation : addDays(start, -LUTEAL_DAYS);
+    const s = spread * Math.min(i, 2);
     out.push({
       start,
-      earliest: addDays(start, -spread * Math.min(i, 2)),
-      latest: addDays(start, spread * Math.min(i, 2)),
+      earliest: addDays(start, -s),
+      latest: addDays(start, s),
       ovulation,
       fertileStart: addDays(ovulation, -5),
       fertileEnd: addDays(ovulation, 1),
@@ -195,4 +235,16 @@ export function dayKind(data: AppData, d: ISODate, stats: CycleStats, prediction
     if (d >= p.fertileStart && d <= p.fertileEnd) return "fertile";
   }
   return null;
+}
+
+/**
+ * Period predictions are switched off during pregnancy, and after pregnancy mode ends until the
+ * first new period is logged (the old pre-pregnancy period would make everything look "late").
+ */
+export function predictionsEnabled(data: AppData, stats: CycleStats): boolean {
+  const s = data.settings;
+  if (s.goal === "pregnant") return false;
+  const last = stats.periods[stats.periods.length - 1];
+  if (s.pregnancyEnded && (!last || last.start < s.pregnancyEnded)) return false;
+  return true;
 }

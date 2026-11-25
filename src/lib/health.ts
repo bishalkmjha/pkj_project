@@ -10,12 +10,12 @@
  * The thresholds should be reviewed by a gynaecologist before release.
  */
 import { addDays, diffDays, type ISODate } from "./dates";
-import type { CycleStats, Prediction } from "./cycle";
+import { predictionsEnabled, type CycleStats, type Prediction } from "./cycle";
 import { isBleeding, type AppData } from "./types";
 
 export type FlagId =
   | "shortCycles" | "longCycles" | "irregular" | "longPeriod" | "heavyFlow"
-  | "noPeriod90" | "late" | "betweenPeriods" | "severePain" | "pcosSigns" | "anemiaSigns";
+  | "noPeriod90" | "late" | "lateUnprotected" | "betweenPeriods" | "severePain" | "pcosSigns" | "anemiaSigns";
 
 export type FlagLevel = "info" | "doctor" | "urgent";
 
@@ -30,6 +30,8 @@ const RECENT_CYCLES = 6;
 
 export function healthFlags(data: AppData, stats: CycleStats, next: Prediction | undefined, on: ISODate): HealthFlag[] {
   const flags: HealthFlag[] = [];
+  // Cycle-based checks don't apply during pregnancy.
+  if (data.settings.goal === "pregnant") return flags;
   const cycles = stats.cycles.slice(-RECENT_CYCLES);
   const periods = stats.periods.slice(-RECENT_CYCLES);
   const lastPeriod = stats.periods[stats.periods.length - 1];
@@ -57,13 +59,16 @@ export function healthFlags(data: AppData, stats: CycleStats, next: Prediction |
   const painful = periods.filter((p) => p.maxPain >= 3).length;
   if (painful >= 2) flags.push({ id: "severePain", level: "doctor", params: { count: painful } });
 
-  if (lastPeriod) {
+  if (lastPeriod && predictionsEnabled(data, stats)) {
     const since = diffDays(lastPeriod.start, on);
     if (since >= 90) {
       flags.push({ id: "noPeriod90", level: "doctor", params: { days: since } });
     } else if (next && on > next.latest) {
       const late = diffDays(next.start, on);
-      if (late >= 7) flags.push({ id: "late", level: "info", params: { days: late } });
+      // Unprotected sex logged since the last period start makes a test the first thing to do.
+      const unprotected = Object.keys(data.days).some((d) => d >= lastPeriod.start && d <= on && data.days[d].intimacy === "unprotected");
+      if (unprotected && late >= 1) flags.push({ id: "lateUnprotected", level: "doctor", params: { days: late } });
+      else if (late >= 7) flags.push({ id: "late", level: "info", params: { days: late } });
     }
   }
 

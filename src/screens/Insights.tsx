@@ -1,3 +1,4 @@
+import { TempChart } from "../components/TempChart";
 import { FlagBanner } from "../components/ui";
 import { formatDate, type StringKey } from "../i18n";
 import { healthFlags } from "../lib/health";
@@ -37,6 +38,8 @@ export function Insights({ onReport }: { onReport: () => void }) {
           <span className="muted small">{t("insDoctorReportHint")}</span>
         </span>
       </button>
+
+      <TempChart />
 
       <section className="card">
         <h3>{t("insTopSymptoms")}</h3>

@@ -16,6 +16,14 @@ export type Mood = (typeof MOODS)[number];
 export const DISCHARGES = ["dry", "sticky", "creamy", "watery", "eggWhite", "unusual"] as const;
 export type Discharge = (typeof DISCHARGES)[number];
 
+export type Intimacy = "protected" | "unprotected";
+export type Goal = "track" | "conceive" | "pregnant";
+export type TempUnit = "C" | "F";
+
+/** Plausible waking body temperature range, in °C. */
+export const TEMP_MIN_C = 35;
+export const TEMP_MAX_C = 38.5;
+
 /** 0 none, 1 mild, 2 moderate, 3 severe */
 export type Pain = 0 | 1 | 2 | 3;
 
@@ -23,6 +31,9 @@ export interface DayLog {
   flow?: Flow;
   pain?: Pain;
   discharge?: Discharge;
+  /** Basal (waking) body temperature, always stored in °C. */
+  temp?: number;
+  intimacy?: Intimacy;
   symptoms?: Symptom[];
   moods?: Mood[];
   pillTaken?: boolean;
@@ -44,6 +55,13 @@ export interface Settings {
   typicalCycleLength: number;
   typicalPeriodLength: number;
   reminders: Reminders;
+  goal: Goal;
+  /** Set while in pregnancy mode: first day of the last period before the pregnancy. */
+  pregnancy: { lmp: ISODate } | null;
+  /** When pregnancy mode was last ended; predictions wait for the first period after it. */
+  pregnancyEnded: ISODate | null;
+  tempUnit: TempUnit;
+  showIntimacy: boolean;
   /** salt:sha256 hex of the app-lock PIN, or null when no lock is set. */
   pinHash: string | null;
 }
@@ -61,6 +79,11 @@ export const DEFAULT_SETTINGS: Settings = {
   typicalCycleLength: 28,
   typicalPeriodLength: 5,
   reminders: { periodSoon: true, periodLate: true, pill: { enabled: false, time: "21:00" }, breastCheck: true },
+  goal: "track",
+  pregnancy: null,
+  pregnancyEnded: null,
+  tempUnit: "C",
+  showIntimacy: true,
   pinHash: null,
 };
 
@@ -73,5 +96,5 @@ export function isBleeding(log: DayLog | undefined): boolean {
 }
 
 export function isEmptyLog(log: DayLog): boolean {
-  return !log.flow && !log.pain && !log.discharge && !log.symptoms?.length && !log.moods?.length && !log.pillTaken && !log.note?.trim();
+  return !log.flow && !log.pain && !log.discharge && log.temp === undefined && !log.intimacy && !log.symptoms?.length && !log.moods?.length && !log.pillTaken && !log.note?.trim();
 }

@@ -3,17 +3,37 @@ import type { GuidePhase } from "../i18n/phases";
 import { MOOD_REMEDY, SYMPTOM_REMEDY, remedyById, type RemedyId } from "../i18n/remedies";
 import { EvidenceTag } from "./Guides";
 import { formatDate, type StringKey } from "../i18n";
-import { status } from "../lib/cycle";
+import { currentCycleShift, predictionsEnabled, status } from "../lib/cycle";
 import { addDays } from "../lib/dates";
 import { healthFlags, urgentNow } from "../lib/health";
 import { useStore } from "../store";
+import { PregnancyToday } from "./Pregnancy";
 
-export function Today({ onLog, onInsights, onPhase, onRemedy }: {
+export function Today(props: {
   onLog: () => void; onInsights: () => void; onPhase: (p: GuidePhase) => void; onRemedy: (r: RemedyId) => void;
+  onPregnant: () => void; onEndPregnancy: (kind: "birth" | "loss") => void;
+}) {
+  const { data } = useStore();
+  if (data.settings.goal === "pregnant" && data.settings.pregnancy) return <PregnancyToday onEnd={props.onEndPregnancy} />;
+  return <CycleToday {...props} />;
+}
+
+function CycleToday({ onLog, onInsights, onPhase, onRemedy, onPregnant }: {
+  onLog: () => void; onInsights: () => void; onPhase: (p: GuidePhase) => void; onRemedy: (r: RemedyId) => void; onPregnant: () => void;
 }) {
   const { data, t, today, stats, predictions, startPeriod, endPeriod, setDay } = useStore();
   const lang = data.settings.lang;
-  const st = status(data, today, stats);
+  const goal = data.settings.goal;
+  // After pregnancy mode, wait for the first new period before predicting anything.
+  const afterPregnancy = !predictionsEnabled(data, stats);
+  const st0 = status(data, today, stats);
+  const st = afterPregnancy
+    ? { ...st0, phase: st0.inPeriod ? ("period" as const) : ("unknown" as const), daysLate: 0, daysUntilNext: null }
+    : st0;
+  const shift = afterPregnancy ? null : currentCycleShift(data, stats);
+  // The next fertile window that hasn't finished yet.
+  const tryWindow = predictions.find((p) => p.fertileEnd >= today);
+  const recentUnprotected = goal === "track" && [0, 1, 2].some((i) => data.days[addDays(today, -i)]?.intimacy === "unprotected");
   const next = predictions.find((p) => p.latest >= today) ?? predictions[0];
   const flags = healthFlags(data, stats, predictions[0], today);
   const fmt = (d: string) => formatDate(d, lang);
@@ -27,7 +47,8 @@ export function Today({ onLog, onInsights, onPhase, onRemedy }: {
   const guidePhase: GuidePhase | null = ["period", "follicular", "fertile", "luteal"].includes(st.phase) ? (st.phase as GuidePhase) : null;
 
   let headline: string;
-  if (st.phase === "unknown") headline = t("todayNoData");
+  if (afterPregnancy && !st.inPeriod) headline = t("todayAfterPregnancy");
+  else if (st.phase === "unknown") headline = t("todayNoData");
   else if (st.inPeriod) headline = t("todayInPeriod", { n: st.cycleDay! });
   else if (st.daysLate > 0) headline = t("todayLate", { n: st.daysLate });
   else if (st.daysUntilNext === 0) headline = t("todayNextToday");
@@ -69,7 +90,8 @@ export function Today({ onLog, onInsights, onPhase, onRemedy }: {
         {next && !st.inPeriod && (
           <p className="muted small">{t("todayExpectedRange", { from: fmt(next.earliest), to: fmt(next.latest) })}</p>
         )}
-        {st.phase === "unknown" && <p className="muted small">{t("todayNoDataHint")}</p>}
+        {st.phase === "unknown" && <p className="muted small">{afterPregnancy ? t("todayAfterPregnancyHint") : t("todayNoDataHint")}</p>}
+        {shift && <p className="small">🌡️ {t("todayTempConfirmed", { date: fmt(shift.ovulation) })}</p>}
 
         <div className="stack" style={{ width: "100%" }}>
           {st.inPeriod ? (
@@ -78,6 +100,7 @@ export function Today({ onLog, onInsights, onPhase, onRemedy }: {
             <button className="btn block" onClick={() => startPeriod(today)}>{t("todayPeriodStarted")}</button>
           )}
           <button className="btn secondary block" onClick={onLog}>{t("todayLogDay")}</button>
+          {st.daysLate > 0 && <button className="btn ghost block" onClick={onPregnant}>{t("todayImPregnant")}</button>}
           {data.settings.reminders.pill.enabled && (
             <label className="setting" style={{ justifyContent: "center" }}>
               <input type="checkbox" checked={!!todayLog.pillTaken}
@@ -87,6 +110,20 @@ export function Today({ onLog, onInsights, onPhase, onRemedy }: {
           )}
         </div>
       </section>
+
+      {recentUnprotected && (
+        <div className="banner info">
+          <h3>{t("todayECTitle")}</h3>
+          <p className="small">{t("todayECBody")}</p>
+        </div>
+      )}
+
+      {goal === "conceive" && tryWindow && (
+        <section className="card" style={{ background: "var(--fertile-soft)" }}>
+          <h3>🌼 {t("todayBestDays", { from: fmt(tryWindow.fertileStart), to: fmt(tryWindow.fertileEnd) })}</h3>
+          <p className="small">{t("todayConceiveTip")}</p>
+        </section>
+      )}
 
       <section className="card">
         <h3>{t(`phase_${st.phase}` as StringKey)}</h3>

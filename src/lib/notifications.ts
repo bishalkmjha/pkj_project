@@ -5,7 +5,7 @@
 import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { translator } from "../i18n";
-import { computeStats, predict } from "./cycle";
+import { computeStats, predict, predictionsEnabled } from "./cycle";
 import { addDays, toLocalDate } from "./dates";
 import type { AppData } from "./types";
 
@@ -44,7 +44,7 @@ export async function rescheduleReminders(data: AppData): Promise<void> {
   const t = translator(lang);
   const now = new Date();
   const stats = computeStats(data);
-  const next = predict(data, 1, stats)[0];
+  const next = predictionsEnabled(data, stats) ? predict(data, 1, stats)[0] : undefined;
   const list = [];
 
   if (next && reminders.periodSoon) {

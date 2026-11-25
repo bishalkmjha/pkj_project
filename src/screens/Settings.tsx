@@ -5,12 +5,12 @@ import { useRef, useState } from "react";
 import { Stepper, Switch } from "../components/ui";
 import { ensurePermission, notificationsSupported } from "../lib/notifications";
 import { parseBackup } from "../lib/storage";
-import type { Lang, Reminders } from "../lib/types";
+import type { Goal, Lang, Reminders, TempUnit } from "../lib/types";
 import { useStore } from "../store";
 
 export const APP_VERSION = "0.1.0";
 
-export function Settings({ onPin, onPrivacy, toast }: { onPin: () => void; onPrivacy: () => void; toast: (m: string) => void }) {
+export function Settings({ onPin, onPrivacy, onPregnant, toast }: { onPin: () => void; onPrivacy: () => void; onPregnant: () => void; toast: (m: string) => void }) {
   const { data, t, today, updateSettings, replaceData, resetAll } = useStore();
   const s = data.settings;
   const fileRef = useRef<HTMLInputElement>(null);
@@ -68,10 +68,34 @@ export function Settings({ onPin, onPrivacy, toast }: { onPin: () => void; onPri
       </section>
 
       <section className="card">
+        <h3>{t("setGoal")}</h3>
+        <div className="stack">
+          {(["track", "conceive", "pregnant"] as Goal[]).map((g) => (
+            <button key={g} className="chip" aria-pressed={s.goal === g} style={{ textAlign: "left" }} onClick={() => {
+              if (g === s.goal) return;
+              if (g === "pregnant") return onPregnant();
+              // leaving pregnancy mode from here counts as the pregnancy ending today
+              const leaving = s.goal === "pregnant" ? { pregnancy: null, pregnancyEnded: today } : {};
+              updateSettings({ goal: g, ...leaving });
+            }}>{t(`goal_${g}`)}</button>
+          ))}
+        </div>
+      </section>
+
+      <section className="card">
         <h3>{t("setCycle")}</h3>
         <Stepper label={t("obCycleLength")} value={s.typicalCycleLength} min={15} max={60} onChange={(v) => updateSettings({ typicalCycleLength: v })} />
         <Stepper label={t("obPeriodLength")} value={s.typicalPeriodLength} min={1} max={14} onChange={(v) => updateSettings({ typicalPeriodLength: v })} />
         <p className="muted small">{t("setCycleHint")}</p>
+        <div className="setting">
+          <span>{t("setTempUnit")}</span>
+          <div className="seg">
+            {(["C", "F"] as TempUnit[]).map((u) => (
+              <button key={u} aria-pressed={s.tempUnit === u} onClick={() => updateSettings({ tempUnit: u })}>°{u}</button>
+            ))}
+          </div>
+        </div>
+        <Switch label={t("setShowIntimacy")} checked={s.showIntimacy} onChange={(v) => updateSettings({ showIntimacy: v })} />
       </section>
 
       <section className="card">

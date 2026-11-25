@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { formatDate, type StringKey } from "../i18n";
 import type { ISODate } from "../lib/dates";
-import { DISCHARGES, MOODS, SYMPTOMS, type DayLog, type Flow, type Mood, type Pain, type Symptom } from "../lib/types";
+import { cToUnit, parseTemp } from "../lib/temp";
+import { DISCHARGES, MOODS, SYMPTOMS, type DayLog, type Intimacy, type Flow, type Mood, type Pain, type Symptom } from "../lib/types";
 import { useStore } from "../store";
 import { Chip, Sheet } from "./ui";
 
@@ -16,9 +17,13 @@ export function DayLogSheet({ date, onClose }: { date: ISODate; onClose: () => v
   const { data, t, setDay } = useStore();
   const [log, setLog] = useState<DayLog>(data.days[date] ?? {});
   const lang = data.settings.lang;
+  const unit = data.settings.tempUnit;
+  const [tempText, setTempText] = useState(log.temp !== undefined ? cToUnit(log.temp, unit).toFixed(2) : "");
+  const tempInvalid = tempText.trim() !== "" && parseTemp(tempText, unit) === null;
 
   const save = () => {
-    setDay(date, { ...log, note: log.note?.trim() || undefined });
+    if (tempInvalid) return;
+    setDay(date, { ...log, temp: parseTemp(tempText, unit) ?? undefined, note: log.note?.trim() || undefined });
     onClose();
   };
 
@@ -80,6 +85,27 @@ export function DayLogSheet({ date, onClose }: { date: ISODate; onClose: () => v
         </div>
       </section>
 
+      <label className="field">
+        <span><strong>{t("logTemp")}</strong> (°{unit})</span>
+        <input type="number" inputMode="decimal" step="0.01" placeholder={unit === "C" ? "36.45" : "97.61"} value={tempText}
+          aria-invalid={tempInvalid} onChange={(e) => setTempText(e.target.value)} />
+        <span className="muted tiny">{t("logTempHint")}</span>
+      </label>
+
+      {data.settings.showIntimacy && (
+        <section className="stack">
+          <h3>{t("logIntimacy")}</h3>
+          <p className="muted tiny">{t("logIntimacyHint")}</p>
+          <div className="chips">
+            {([undefined, "protected", "unprotected"] as (Intimacy | undefined)[]).map((v) => (
+              <Chip key={v ?? "none"} on={log.intimacy === v} onClick={() => setLog({ ...log, intimacy: v })}>
+                {t(`int_${v ?? "none"}` as StringKey)}
+              </Chip>
+            ))}
+          </div>
+        </section>
+      )}
+
       {data.settings.reminders.pill.enabled && (
         <div className="chips">
           <Chip on={!!log.pillTaken} onClick={() => setLog({ ...log, pillTaken: !log.pillTaken || undefined })}>
@@ -94,8 +120,8 @@ export function DayLogSheet({ date, onClose }: { date: ISODate; onClose: () => v
       </label>
 
       <div className="sticky-actions">
-        <button className="btn ghost" onClick={() => setLog({})}>{t("logClear")}</button>
-        <button className="btn" style={{ flex: 1 }} onClick={save}>{t("save")}</button>
+        <button className="btn ghost" onClick={() => { setLog({}); setTempText(""); }}>{t("logClear")}</button>
+        <button className="btn" style={{ flex: 1 }} disabled={tempInvalid} onClick={save}>{t("save")}</button>
       </div>
     </Sheet>
   );

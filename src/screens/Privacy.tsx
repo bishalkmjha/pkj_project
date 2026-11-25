@@ -8,7 +8,7 @@ export const PRIVACY: Record<"en" | "hi", { title: string; updated: string; body
     updated: "Last updated: 25 November 2026",
     body: [
       "Sakhi is a menstrual cycle and health tracker. We designed it so that your health data stays with you.",
-      "What we collect: nothing. Everything you enter (period dates, symptoms, moods, notes and settings) is stored only on your device. Sakhi has no accounts, no servers, no analytics, no advertising and no third-party trackers.",
+      "What we collect: nothing. Everything you enter (period dates, symptoms, moods, discharge, temperature, intimacy, pregnancy details, notes and settings) is stored only on your device. Sakhi has no accounts, no servers, no analytics, no advertising and no third-party trackers.",
       "Internet: the app does not send your data over the internet.",
       "Reminders: notifications are scheduled on your device by the operating system.",
       "Backups: if you choose 'Export my data', a file is created and you decide where to share or save it. Keep it somewhere private.",
@@ -24,7 +24,7 @@ export const PRIVACY: Record<"en" | "hi", { title: string; updated: string; body
     updated: "आख़िरी बदलाव: 25 नवंबर 2026",
     body: [
       "सखी एक माहवारी चक्र और सेहत ट्रैकर है। इसे इस तरह बनाया गया है कि आपका सेहत से जुड़ा डेटा आपके ही पास रहे।",
-      "हम क्या इकट्ठा करते हैं: कुछ भी नहीं। आप जो भी दर्ज करती हैं (पीरियड की तारीखें, लक्षण, मूड, नोट और सेटिंग्स) वह सिर्फ़ आपके डिवाइस में रहता है। सखी में न अकाउंट है, न सर्वर, न एनालिटिक्स, न विज्ञापन, और न कोई थर्ड-पार्टी ट्रैकर।",
+      "हम क्या इकट्ठा करते हैं: कुछ भी नहीं। आप जो भी दर्ज करती हैं (पीरियड की तारीखें, लक्षण, मूड, डिस्चार्ज, तापमान, अंतरंगता, गर्भावस्था की जानकारी, नोट और सेटिंग्स) वह सिर्फ़ आपके डिवाइस में रहता है। सखी में न अकाउंट है, न सर्वर, न एनालिटिक्स, न विज्ञापन, और न कोई थर्ड-पार्टी ट्रैकर।",
       "इंटरनेट: ऐप आपका डेटा इंटरनेट पर नहीं भेजता।",
       "रिमाइंडर: नोटिफ़िकेशन आपके डिवाइस पर ही ऑपरेटिंग सिस्टम द्वारा सेट किए जाते हैं।",
       "बैकअप: अगर आप 'मेरा डेटा एक्सपोर्ट करें' चुनती हैं, तो एक फ़ाइल बनती है और आप तय करती हैं कि उसे कहाँ शेयर या सेव करना है। उसे किसी निजी जगह पर रखें।",

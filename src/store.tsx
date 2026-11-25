@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { translator, type T } from "./i18n";
-import { MAX_GAP_IN_PERIOD, computeStats, predict, type CycleStats, type Prediction } from "./lib/cycle";
+import { MAX_GAP_IN_PERIOD, computeStats, predict, predictionsEnabled, type CycleStats, type Prediction } from "./lib/cycle";
 import { addDays, today, type ISODate } from "./lib/dates";
 import { rescheduleReminders } from "./lib/notifications";
 import { clearData, loadData, saveData } from "./lib/storage";
@@ -67,7 +67,7 @@ export function StoreProvider({ children, fallback }: { children: ReactNode; fal
       t: translator(data.settings.lang),
       today: day,
       stats,
-      predictions: predict(data, 3, stats),
+      predictions: predictionsEnabled(data, stats) ? predict(data, 3, stats) : [],
       setDay: setLog,
       updateSettings: (patch) => update((d) => ({ ...d, settings: { ...d.settings, ...patch } })),
       replaceData: (next) => setData(next),
