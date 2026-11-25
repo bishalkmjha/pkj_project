@@ -11,7 +11,9 @@
     "android:sync": "npm run build && cap sync android",
     "android:open": "cap open android",
     "privacy": "node scripts/gen-privacy.mjs",
-    "android:release": "npm run build && cap sync android && cd android && ./gradlew bundleRelease"
+    "android:release": "npm run build && cap sync android && cd android && ./gradlew bundleRelease",
+    "build:site": "npm run build && node scripts/build-site.mjs",
+    "screenshots": "node scripts/screenshots.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.2",

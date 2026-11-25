@@ -100,5 +100,21 @@ cd android && ./gradlew assembleDebug    # installable test APK: app/build/outpu
 
 ## Website
 
-`npm run build` outputs a static site in `dist/` that can go on any static host (Netlify, Vercel, GitHub Pages and so on).
+The website lives in `website/` and has three parts:
+
+| Path | What |
+|---|---|
+| `/` | Landing page in English and Hindi, with a switch that remembers the choice |
+| `/app/` | The full Sakhi web app (the same code as the Android app) |
+| `/privacy.html` | Privacy policy in both languages. **This is the URL to give Google Play** |
+
+```bash
+npm run build:site     # outputs everything to site-dist/
+npm run screenshots    # refresh website/img/ from the running app (needs `npx vite preview --port 4173` running)
+```
+
+**Publishing:** `.github/workflows/deploy-site.yml` publishes the site to GitHub Pages on every push to `main`.
+Turn it on once in the repository's Settings → Pages → Source: **GitHub Actions**.
+`site-dist/` also works as-is on Netlify, Vercel, Cloudflare Pages or any static host.
+
 On the web, data lives in that browser only, and reminders aren't available.

@@ -12,3 +12,4 @@ android/.idea/
 *.keystore
 *.jks
 keystore.properties
+site-dist/
